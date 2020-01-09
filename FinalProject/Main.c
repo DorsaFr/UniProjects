@@ -9,7 +9,7 @@
  
 struct Salon 
 {
-	char counter; 
+	int counter; 
 	struct Sans *sans;
 	int Place [10][10];
 	int capacity;
@@ -17,7 +17,6 @@ struct Salon
 
 struct Sans
 {
-	// char *date;
 	char startingTime[10];
 	char finishingTime[10];
 	struct Date *date;
@@ -69,18 +68,20 @@ int main ()
 	int counter = 0 ;
 	while (1)
 	{
-		printf("\n Hi\n welcome to MAX cinema reservation\n please enter command number \n 1-Buy Ticket  \n 2- create Sans \n");
+		printf("\n Hi\n Welcome to City Cinema Reservation\n please enter command number \n 1-Buy Ticket  \n 2- Display Sans \n 3- Exit \n");
 		scanf("%d",&counter);
 		
 		switch (counter)
 		{
 		case 1 :
-			DisplaySans();
+			BuyTicket();
 			break;
 		case 2:
-			PrintInFile();
+			DisplaySans();
 			break;
-
+		case 3:	
+			exit (0);
+			break;
 		default:
 			break;
 		}
@@ -92,14 +93,16 @@ int main ()
 // {
 // 	int Row = 0, Col = 0; 
 // 	int Checker = 0;
+// 	int cnt = 0;
 // 	struct Ticket *ticket;
-// 	printf ("Please enter name:\n");
+// 	printf ("Please Enter your Name:\n");
 // 	scanf ("%s", ticket->Name);
-// 	printf ("Please enter family name:\n");
+// 	printf ("Please Enter your Family Name:\n");
 // 	scanf ("%s", ticket->Family);
 // 	printf ("Please enter chair number:\n");
 // 	while (Checker != 1)
 // 	{
+// 		// This Part may be the job of chairvalidator function
 // 		scanf ("%d %d", &Row, &Col);
 // 		if (ticket->chairNumber[Row][Col] != 0)
 // 		{
@@ -110,16 +113,34 @@ int main ()
 // 		{
 // 			ticket->chairNumber[Row][Col] = 1;
 // 			break;
+// 			// To count how many chair is reserved (but the thing is how to understand which salon we are talking about)
+// 			// or should be counted in chair validator function
+// 			cnt ++;
 // 		}
 // 	}
-
+// 	 //CheckCapacity(cnt & capacity of the salon)
 // 	// AddTicketToFile(ticket);		
 // }
 
+
+//void CheckCapacity (struct Salon *salon, int cnt)
+//{
+//		int remain;
+//		remain = (salon->capacity)- cnt;
+// 		if (remain <= 0) 
+//		{
+// 			printf ("Sorry! This Salon is Full!\n");
+// 			// Here it must go back to showing sans & Buying tickets I suppose 
+//		}
+// 		else {
+//			return (remain);
+//    		}
+//}
+
 void SelectSans()
 {
-	char Row, Col;
-	char counter = 0;
+	int Row, Col;
+	int counter = 0;
 	char buffer[1000];
 	struct Sans *sans;
 	struct Film *film;
@@ -129,7 +150,7 @@ void SelectSans()
 	FILE *fp;
 	fp = fopen("Sans.txt","r");
 	fgets(buffer, 255, (FILE*)fp);
-	char * Ticket = strtok(buffer," ");
+	char *Ticket = strtok(buffer," ");
 
 	while (Ticket != NULL){
 
@@ -148,9 +169,8 @@ void SelectSans()
 		if (counter%12 == 1)
 		{
 			strcpy(film->name ,Ticket);
-			
-			// printf("check name\n");
 		}
+		
 		if (counter%12 == 2)
 		{
 			strcpy(film->director,Ticket);	
@@ -160,12 +180,11 @@ void SelectSans()
 		{
 			strcpy(film->actors,Ticket);
 			sans->film=film;
-			// printf("check mounth\n");
 		}
+		
 		if(counter%12 == 4)
 		{
 			strcpy(sans->startingTime,Ticket);						
-			// printf("check day");
 		}
 		
 		if(counter%12 == 5)
@@ -180,20 +199,24 @@ void SelectSans()
 			sans->date=date;
 			salon->sans=sans;
 		}
+		
 		if (counter%12 == 8)
 		{
 			strcpy(salon->counter,Ticket);	
 		}
+		
 		if (counter%12 == 9)
 		{
 			strcpy(Row ,Ticket);
 			
 		}
+		
 		if (counter%12 == 10)
 		{
 			strcpy(Col ,Ticket);
 			salon->Place[Row][Col] = 1; 
 		}
+		
 		if (counter%12 == 11)
 		{
 			strcpy(salon->capacity,Ticket);
@@ -212,18 +235,6 @@ void SelectSans()
 	}
 	
 	fclose(fp);
-	
-}
-void BuyTicket ()
-{
-	int counter = 0;
-	FILE *fp;
-	fp = fopen ("Sans.txt", "r");
-	
-	if (counter%14 == 1)
-	{
-		
-	}
 	
 }
 
@@ -253,6 +264,7 @@ void ConcatStrings(struct Ticket *ticket)
 // 		{
 // 			if (chairNumber[i][j] != 0)
 // 			{
+// 			// Not Reserved
 // 				return(0);
 // 			}
 			
@@ -314,7 +326,7 @@ void DisplaySans()
 		printf("Finishing time: %s\n",node->salon->sans->finishingTime);
 		printf("month: %s\t",node->salon->sans->date->month);
 		printf("Day: %s\t",node->salon->sans->date->day);
-		printf("Salon: %s\t",salon->counter);
+		printf("Salon: %d\t",salon->counter);
 		printf("Place: %s\t",salon->place);
 		printf("Capacity: %s\t", salon->capacity);
 		
