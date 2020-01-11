@@ -11,7 +11,7 @@ struct Salon
 {
 	int counter; 
 	struct Sans *sans;
-	int Place [10][10];
+	// int place[10][10];
 	int capacity;
 };
 
@@ -26,9 +26,9 @@ struct Sans
 struct Film
 {
 	char name[75];
-	char *actors; 
-	char *summary;
-	char *director;
+	char actors[200]; 
+	char summary[100];
+	char director[100];
 	int ID;
 };
 
@@ -44,7 +44,8 @@ struct Ticket
 	char Name[50];
 	char Family[50];
 	int chairNumber[10][10];
-	struct Salon *salon;
+	int filmId;
+	int ticketNumber;
 };
 
 struct Date{
@@ -52,15 +53,26 @@ struct Date{
 	char month[5];
 };
 
-struct Node *head = NULL;
+struct Place{
+	int Row;
+	int Col;
+};
 
-void CreateSans();
+struct Node *head = NULL;
+int filmNumber;
+
 void GenerateLinkedList();
-void PrintInFile();
 void BuyTicket();
 void SelectSans();
 void DisplaySans();
-void ConcatStrings(struct Ticket *ticket);
+void printArray();
+void quickSort(); 
+int partition (); 
+void swap();
+void Sort();
+int CheckCapacity();
+void TicketReserving();
+void StoreTicket();
 
 int main ()
 {
@@ -82,45 +94,163 @@ int main ()
 		case 3:	
 			exit (0);
 			break;
-		default:
-			break;
 		}
 		
 	}	
 }
 
-// void BuyTicket()
-// {
-// 	int Row = 0, Col = 0; 
-// 	int Checker = 0;
-// 	int cnt = 0;
-// 	struct Ticket *ticket;
-// 	printf ("Please Enter your Name:\n");
-// 	scanf ("%s", ticket->Name);
-// 	printf ("Please Enter your Family Name:\n");
-// 	scanf ("%s", ticket->Family);
-// 	printf ("Please enter chair number:\n");
-// 	while (Checker != 1)
-// 	{
-// 		// This Part may be the job of chairvalidator function
-// 		scanf ("%d %d", &Row, &Col);
-// 		if (ticket->chairNumber[Row][Col] != 0)
-// 		{
-// 			Checker = 0;
-// 			printf ("This chair is reserved!");
-// 		}
-// 		else 
-// 		{
-// 			ticket->chairNumber[Row][Col] = 1;
-// 			break;
-// 			// To count how many chair is reserved (but the thing is how to understand which salon we are talking about)
-// 			// or should be counted in chair validator function
-// 			cnt ++;
-// 		}
-// 	}
-// 	 //CheckCapacity(cnt & capacity of the salon)
-// 	// AddTicketToFile(ticket);		
-// }
+void Sort()
+{	
+	
+	int arr[filmNumber];
+	int counter = 0;
+	struct Node *node = head;
+	while (node != NULL)
+	{
+		arr[counter] = node->salon->sans->film->ID;
+		node = node->next;
+		counter++;
+	}
+
+	quickSort(arr, 0, filmNumber-1); 
+	printArray(arr, filmNumber); 
+}
+
+int CheckCapacity(int id,int number)
+{
+	struct Node *node = head;
+	while (node != NULL)
+	{
+		if(id == node->salon->sans->film->ID)
+		{
+			if (node->salon->capacity - number > 0)
+				return 2;
+			else{
+				return 4;
+			}
+		}
+
+		node = node->next;
+	}		
+	return 3;
+}
+
+void StoreTicket(struct Ticket *ticket)
+{
+	char contents[1000];
+	char temp[100];
+	FILE *fp;
+
+	fp = fopen("Customer.txt","a+");
+
+	strcat(contents,ticket->Name);
+	strcat(contents," ");
+	strcat(contents,ticket->Family);
+	strcat(contents," ");
+	strcat(contents,itoa(ticket->ticketNumber,temp,10));
+	strcat(contents," ");
+	strcat(contents,itoa(ticket->filmId,temp,10));
+	strcat(contents," ");
+
+	printf("%s",contents);
+	fputs(contents,fp);
+	fclose(fp);
+}
+
+void TicketReserving(int filmId, int number)
+{
+	FILE *fp;
+	char content[1000];
+	struct Node *node = head;
+	char temp[100];
+	fp = fopen("Sans.txt","w");
+	
+	while(node != NULL)	
+	{
+		if (node->salon->sans->film->ID == filmId)
+			node->salon->capacity = node->salon->capacity -number;
+
+		strcat(content,itoa(node->salon->sans->film->ID,temp,10));
+		strcat(content," ");
+		strcat(content,node->salon->sans->film->name);
+		strcat(content," ");
+		strcat(content,node->salon->sans->film->director);
+		strcat(content," ");
+		strcat(content,node->salon->sans->film->actors);
+		strcat(content," ");
+		strcat(content,node->salon->sans->startingTime);
+		strcat(content," ");
+		strcat(content,node->salon->sans->finishingTime);
+		strcat(content," ");
+		strcat(content,node->salon->sans->date->month);
+		strcat(content," ");
+		strcat(content,node->salon->sans->date->day);
+		strcat(content," ");
+		strcat(content,itoa(node->salon->counter,temp,10));
+		strcat(content," ");
+		strcat(content,itoa(node->salon->capacity,temp,10));
+		strcat(content," ");
+		node = node->next;
+	}
+	
+	fputs(content,fp);
+	fclose(fp);
+}
+
+void BuyTicket()
+{
+	int Row = 0, Col = 0; 
+	int Checker = 0;
+	int cnt = 0;
+
+	struct Ticket *ticket;
+	ticket = (struct ticket*)malloc(sizeof(struct Ticket));
+
+	printf ("Please Enter your Name:\n");
+	scanf ("%s", &ticket->Name);
+	printf ("Please Enter your Family Name:\n");
+	scanf ("%s", &ticket->Family);
+	printf ("How many ticket do you want:\n");
+	scanf ("%d", &ticket->ticketNumber);
+	printf("please enter film id: \n");
+	scanf("%d",&ticket->filmId);
+
+	int capacity = CheckCapacity(ticket->filmId,ticket->ticketNumber);
+	if(capacity == 2)
+	{
+		TicketReserving(ticket->filmId,ticket->ticketNumber);
+		printf("ticket is reserved");
+	}
+	else if(capacity == 4)
+		printf("sorry salon is fulled");
+	else
+		printf("Film id is not corect");
+				
+
+	StoreTicket(ticket);
+
+	// printf ("Please enter chair number:\n");
+	// while (Checker != 1)
+	// {
+	// 	// This Part may be the job of chairvalidator function
+	// 	scanf ("%d %d", &Row, &Col);
+	// 	if (ticket->chairNumber[Row][Col] != 0)
+	// 	{
+	// 		Checker = 0;
+	// 		printf ("This chair is reserved!");
+	// 	}
+	// 	else 
+	// 	{
+	// 		ticket->chairNumber[Row][Col] = 1;
+	// 		break;
+	// 		// To count how many chair is reserved (but the thing is how to understand which salon we are talking about)
+	// 		// or should be counted in chair validator function
+	// 		cnt ++;
+	// 	}
+	// }
+	 //CheckCapacity(cnt & capacity of the salon)
+	// AddTicketToFile(ticket);		
+}
 
 
 //void CheckCapacity (struct Salon *salon, int cnt)
@@ -139,13 +269,15 @@ int main ()
 
 void SelectSans()
 {
-	int Row, Col;
 	int counter = 0;
+	int Row;
+	int Col;
 	char buffer[1000];
 	struct Sans *sans;
 	struct Film *film;
 	struct Date *date;
 	struct Salon *salon;
+	struct Place *place;
 	
 	FILE *fp;
 	fp = fopen("Sans.txt","r");
@@ -155,79 +287,70 @@ void SelectSans()
 	while (Ticket != NULL){
 
 		// sizeof(struct Film) + sizeof(struct Sans) + sizeof(struct Date)
-		if (counter == 0){	
+		if (counter == 0)
+		{	
 			sans = (struct sans*)malloc(sizeof(struct Sans));
 			film = (struct sans*)malloc(sizeof(struct Film));
 			date = (struct sans*)malloc(sizeof(struct Date));
 			salon = (struct salon*)malloc(sizeof(struct Salon));					
 		}
 
-		if (counter%12 == 0)
-		{
-			strcpy(film->ID, Ticket);						
+		if (counter%10 == 0){
+			film->ID = atoi(Ticket);						
 		}
-		if (counter%12 == 1)
-		{
+		
+		if (counter%10 == 1)
 			strcpy(film->name ,Ticket);
-		}
 		
-		if (counter%12 == 2)
-		{
+		if (counter%10 == 2)
 			strcpy(film->director,Ticket);	
-		}
 		
-		if(counter%12 == 3)
-		{
+		if(counter%10 == 3){
 			strcpy(film->actors,Ticket);
 			sans->film=film;
 		}
 		
-		if(counter%12 == 4)
+		if(counter%10 == 4)
 		{
 			strcpy(sans->startingTime,Ticket);						
 		}
 		
-		if(counter%12 == 5)
+		if(counter%10 == 5)
 			strcpy(sans->finishingTime,Ticket);
 
-		if(counter %12== 6)
+		if(counter %10== 6)
 			strcpy(date->month,Ticket);
 
-		if (counter%12 == 7)
+		if (counter%10 == 7)
 		{
 			strcpy(date->day,Ticket);
 			sans->date=date;
 			salon->sans=sans;
 		}
 		
-		if (counter%12 == 8)
-		{
-			strcpy(salon->counter,Ticket);	
-		}
+		if (counter%10 == 8)
+			salon->counter = atoi(Ticket);	
 		
-		if (counter%12 == 9)
-		{
-			strcpy(Row ,Ticket);
-			
-		}
+		// if (counter%12 == 9)
+		// 	Row = atoi(Ticket);			
 		
-		if (counter%12 == 10)
-		{
-			strcpy(Col ,Ticket);
-			salon->Place[Row][Col] = 1; 
-		}
+		// if (counter%12 == 10)
+		// {
+		// 	Col = atoi(Ticket);
+		// 	salon->place[Row][Col] = 1;
+		// }
 		
-		if (counter%12 == 11)
+		if (counter%10 == 9)
 		{
-			strcpy(salon->capacity,Ticket);
+			salon->capacity = atoi(Ticket);
 		}
 		
 		counter++;
 
-		if (counter == 12)
+		if (counter == 10)
 		{
-			// printf("prepare linkedlist\n");
-			GenerateLinkedList();
+			GenerateLinkedList(salon);
+			filmNumber++;
 			counter =0;
 		}
 		
@@ -236,14 +359,6 @@ void SelectSans()
 	
 	fclose(fp);
 	
-}
-
-void ConcatStrings(struct Ticket *ticket)
-{
-	char result[100];
-	strcat(result,ticket->Name);
-	strcat (result,ticket->Family);
-	// strcat (result,ticket->chairNumber);
 }
 
 // void AddTicketToFile()
@@ -273,42 +388,17 @@ void ConcatStrings(struct Ticket *ticket)
 // 	}
 // }
 
-void CreateSans()
-{
-	struct Sans sans;
-	printf ("Please enter date(MM/DD):\n");
-	scanf ("%s", sans.date);
-	printf ("Please enter starting time:\n");
-	scanf ("%s", sans.startingTime);
-	printf ("Please enter finishing time:\n");
-	scanf ("%s", sans.finishingTime);
-}
-
 // char date[], char startingTime[], char finishingTime[] 
 
-void PrintInFile()
-{
-	FILE *fp;
-	fp = fopen("Customer.txt","a+");
-	fseek(fp,1,SEEK_SET);
-	fprintf(fp,"date 12 12 12 ");
-	fprintf(fp,"dateAli 12 12 12 ");
-	fprintf(fp,"dateMmd 12 12 12 ");
-	// fprintf(fp,date);
-	// fprintf(fp,startingTime);
-	// fprintf(fp,finishingTime);
-	fclose(fp);
-}
 
 void GenerateLinkedList(struct Salon * salon)
 {	
    	struct Node *link = (struct node*) malloc(sizeof(struct Node));
-	// printf("get memory\n");
 
 	link->salon = salon;
 	link->next = head;		   
 	head = link;
-	// printf("Node added\n");
+	
 }
 
 void DisplaySans()
@@ -316,22 +406,97 @@ void DisplaySans()
 	int counter = 1;
 	struct Node *node = head;
 
-	// printf("Displaying \n");
 	while (node != NULL)
 	{
-		// printf("Display Linked list\n");
-		printf("%d\t",counter);
+		printf("ID :%d\t",node->salon->sans->film->ID);
 		printf("Film: %s\t",node->salon->sans->film->name);
+		printf("direcor: %s\n",node->salon->sans->film->director);
+		printf("actors: %s\t",node->salon->sans->film->actors);
 		printf("Starting time: %s\t",node->salon->sans->startingTime);
 		printf("Finishing time: %s\n",node->salon->sans->finishingTime);
 		printf("month: %s\t",node->salon->sans->date->month);
 		printf("Day: %s\t",node->salon->sans->date->day);
-		printf("Salon: %d\t",salon->counter);
-		printf("Place: %s\t",salon->place);
-		printf("Capacity: %s\t", salon->capacity);
-		
+		printf("Salon: %d\n",node->salon->counter);
+		// printf("Row of %s\t",node->salon->Place);
+		printf("Capacity: %d\t", node->salon->capacity);
+		printf("\n");
 		node = node->next;
 		counter++;
 	}
+
+	char question[5];
+	printf("\n do you want to sort list\n");
+	scanf("%s",question);
+
+	if (strcmp(question,"yes") == 0)
+		Sort();
 	
 }
+
+
+void swap(int* a, int* b) 
+{ 
+    int t = *a; 
+    *a = *b; 
+    *b = t; 
+} 
+  
+int partition (int arr[], int low, int high) 
+{ 
+    int pivot = arr[high];
+    int i = (low - 1);  
+  
+    for (int j = low; j <= high- 1; j++) 
+    { 
+        if (arr[j] < pivot) 
+        { 
+            i++;    
+            swap(&arr[i], &arr[j]); 
+        } 
+    } 
+    swap(&arr[i + 1], &arr[high]); 
+    return (i + 1); 
+} 
+  
+void quickSort(int arr[], int low, int high) 
+{ 
+    if (low < high) 
+    { 
+		
+        int pi = partition(arr, low, high); 
+        quickSort(arr, low, pi - 1); 
+        quickSort(arr, pi + 1, high); 
+		
+    } 
+} 
+
+
+void printArray(int arr[], int size) 
+{ 	
+    
+	for (size_t i = 0; i < size; i++)
+	{
+		struct Node *node = head;
+
+		while (node != NULL)
+		{
+			if (arr[i] == node->salon->sans->film->ID)
+			{
+				printf("ID :%d\t",node->salon->sans->film->ID);
+				printf("Film: %s\t",node->salon->sans->film->name);
+				printf("direcor: %s\n",node->salon->sans->film->director);
+				printf("actors: %s\t",node->salon->sans->film->actors);
+				printf("Starting time: %s\t",node->salon->sans->startingTime);
+				printf("Finishing time: %s\n",node->salon->sans->finishingTime);
+				printf("month: %s\t",node->salon->sans->date->month);
+				printf("Day: %s\t",node->salon->sans->date->day);
+				printf("Salon: %d\n",node->salon->counter);
+				// printf("Row of %s\t",node->salon->Place);
+				printf("Capacity: %d\t", node->salon->capacity);
+				printf("\n");
+			}
+			node = node->next;
+		}
+	}	
+	
+} 
