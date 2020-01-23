@@ -73,6 +73,8 @@ void Sort();
 int CheckCapacity();
 void TicketReserving();
 void StoreTicket();
+void CreateSans();
+void PrintInFile();
 
 int main ()
 {
@@ -80,7 +82,7 @@ int main ()
 	int counter = 0 ;
 	while (1)
 	{
-		printf("\n Hi\n Welcome to City Cinema Reservation\n please enter command number \n 1-Buy Ticket  \n 2- Display Sans \n 3- Exit \n");
+		printf("\n Hi\n Welcome to City Cinema Reservation\n please enter command number \n 1-Buy Ticket  \n 2- Display Sans \n 3- Create sans \n 4- Exit \n");
 		scanf("%d",&counter);
 		
 		switch (counter)
@@ -92,12 +94,99 @@ int main ()
 			DisplaySans();
 			break;
 		case 3:	
+			CreateSans ();
+			break;			
+		case 4:	
 			exit (0);
 			break;
 		}
 		
 	}	
 }
+
+void CreateSans()
+{
+
+	char buffer[1000];
+	struct Sans *sans;
+	struct Film *film;
+	struct Date *date;
+	struct Salon *salon;
+	struct Place *place;
+
+	sans = (struct sans*)malloc(sizeof(struct Sans));
+	film = (struct sans*)malloc(sizeof(struct Film));
+	date = (struct sans*)malloc(sizeof(struct Date));
+	salon = (struct salon*)malloc(sizeof(struct Salon));					
+
+	printf("please enter film ID \n ");
+	scanf("%d",&film->ID);
+	printf("please enter film name \n ");
+	scanf("%s",&film->name);
+	printf("please enter film director \n ");
+	scanf("%s",&film->director);
+	printf("please enter film actors in this patern (actor1,actor2) \n");
+	scanf("%s",&film->actors);
+
+	printf("please enter starting time \n ");
+	scanf("%c",&sans->startingTime);
+	printf("please enter finishing time \n");
+	scanf("%c",&sans->finishingTime);
+
+	printf("please enter mounth \n ");
+	scanf("%c",&date->month);
+	printf("please enter day \n ");
+	scanf("%c",&date->day);
+
+	printf("please enter capacity \n ");
+	scanf("%d",&salon->capacity);
+	printf("please salon number \n ");
+	scanf("%d",&salon->counter);
+
+	sans->date = date;
+	sans->film = film;
+	salon->sans = sans;
+
+	PrintInFile(salon);
+
+}
+
+void PrintInFile(struct Salon *salon)
+{
+	FILE *fp;
+	fp = fopen("Sans.txt","a+");
+	char contents[300];
+	char temp[100];
+
+	strcat(contents," ");
+	strcat(contents,itoa(salon->sans->film->ID,temp,10));
+	strcat(contents," ");
+	strcat(contents,salon->sans->film->name);
+	strcat(contents," ");
+	strcat(contents,salon->sans->film->director);
+	strcat(contents," ");
+	strcat(contents,salon->sans->film->actors);
+	strcat(contents," ");
+	strcat(contents,salon->sans->startingTime);
+	strcat(contents," ");
+	strcat(contents,salon->sans->finishingTime);
+	strcat(contents," ");
+	strcat(contents,salon->sans->date->month);
+	strcat(contents," ");
+	strcat(contents,salon->sans->date->day);
+	strcat(contents," ");
+	strcat(contents,itoa(salon->counter,temp,10));
+	strcat(contents," ");
+	strcat(contents,itoa(salon->capacity,temp,10));
+
+	fputs(contents,fp);
+
+	fclose(fp);
+
+	printf("successful");
+
+}
+
 
 void Sort()
 {	
@@ -229,43 +318,7 @@ void BuyTicket()
 
 	StoreTicket(ticket);
 
-	// printf ("Please enter chair number:\n");
-	// while (Checker != 1)
-	// {
-	// 	// This Part may be the job of chairvalidator function
-	// 	scanf ("%d %d", &Row, &Col);
-	// 	if (ticket->chairNumber[Row][Col] != 0)
-	// 	{
-	// 		Checker = 0;
-	// 		printf ("This chair is reserved!");
-	// 	}
-	// 	else 
-	// 	{
-	// 		ticket->chairNumber[Row][Col] = 1;
-	// 		break;
-	// 		// To count how many chair is reserved (but the thing is how to understand which salon we are talking about)
-	// 		// or should be counted in chair validator function
-	// 		cnt ++;
-	// 	}
-	// }
-	 //CheckCapacity(cnt & capacity of the salon)
-	// AddTicketToFile(ticket);		
 }
-
-
-//void CheckCapacity (struct Salon *salon, int cnt)
-//{
-//		int remain;
-//		remain = (salon->capacity)- cnt;
-// 		if (remain <= 0) 
-//		{
-// 			printf ("Sorry! This Salon is Full!\n");
-// 			// Here it must go back to showing sans & Buying tickets I suppose 
-//		}
-// 		else {
-//			return (remain);
-//    		}
-//}
 
 void SelectSans()
 {
